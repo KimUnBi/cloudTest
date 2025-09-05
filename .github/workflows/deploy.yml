@@ -1,4 +1,4 @@
-name: Spring Boot CI/CD to Public & Private Server
+name: Spring Boot Gradle CI/CD
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-   
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -21,21 +21,23 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-        
+
       - name: Grant execute permission for Gradlew
         run: chmod +x ./gradlew
 
       - name: Build JAR with Gradle
         run: ./gradlew clean bootJar -x test
-        
-      - name: Copy JAR to Public Server
+
+      - name: Copy JAR & deploy script to Public Server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PUBLIC_HOST }}
           username: root
           key: ${{ secrets.PUBLIC_SSH_KEY }}
-          source: "build/libs/*SNAPSHOT.jar"
-          target: "/root/app/app.jar"
+          source: |
+            build/libs/*SNAPSHOT.jar
+            deploy_private.sh
+          target: /root/app/
 
       - name: Execute deploy_private.sh on Public Server
         uses: appleboy/ssh-action@v1.0.3
@@ -46,5 +48,3 @@ jobs:
           script: |
             chmod +x /root/app/deploy_private.sh
             /root/app/deploy_private.sh
-
-
