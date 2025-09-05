@@ -8,10 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: spring-boot-app   # ✅ 서브폴더 지정
-
+   
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
