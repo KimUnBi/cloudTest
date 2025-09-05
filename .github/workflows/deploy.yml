@@ -1,4 +1,4 @@
-name: Spring Boot CI/CD to Public & Private Server
+name: Spring Boot Gradle CI/CD
 
 on:
   push:
@@ -8,42 +8,48 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-   
+
     steps:
+      # 1️ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2 Set up JDK
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # 3️ Setup Gradle
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-        
+
+      # 4️ Gradlew 실행 권한 부여
       - name: Grant execute permission for Gradlew
         run: chmod +x ./gradlew
 
+      # 5️ Build JAR
       - name: Build JAR with Gradle
         run: ./gradlew clean bootJar -x test
-        
-      - name: Copy JAR to Public Server
+
+      # 6️ Copy JAR + deploy_private.sh to Public Server
+      - name: Copy JAR & deploy script to Public Server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PUBLIC_HOST }}
           username: root
           key: ${{ secrets.PUBLIC_SSH_KEY }}
-          source: "build/libs/*SNAPSHOT.jar"
-          target: "/root/app/app.jar"
-        
+          source: |
+            build/libs/*SNAPSHOT.jar
+            deploy_private.sh
+          target: /root/app/
 
-      - name: Deploy to Private Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.PUBLIC_HOST }}
-          username: root
-          key: ${{ secrets.PUBLIC_SSH_KEY }}
-          script: |
-            chmod +x /root/app/deploy_private.sh
-            /root/app/deploy_private.sh
+      # 7️ Public 서버에서 deploy_private.sh 실행 (Here Document)
+      - name: Deploy JAR to Private from Public
+        run: |
+          ssh ${{ secrets.PUBLIC_USER }}@${{ secrets.PUBLIC_HOST }} << 'EOF'
+            mkdir -p /root/app
+            scp /root/app/app.jar root@10.10.20.6:/root/app/app.jar
+            ssh root@10.10.20.6 "bash /root/deploy.sh"
+          EOF
