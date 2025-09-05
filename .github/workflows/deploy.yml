@@ -27,15 +27,23 @@ jobs:
 
       - name: Build JAR with Gradle
         run: ./gradlew clean bootJar -x test
+        
+      - name: Copy JAR to Public Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PUBLIC_HOST }}
+          username: root
+          key: ${{ secrets.PUBLIC_SSH_KEY }}
+          source: "build/libs/*SNAPSHOT.jar"
+          target: "/root/app/app.jar"
+        
 
-      - name: Deploy to Public Server
+      - name: Deploy to Private Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PUBLIC_HOST }}
           username: root
           key: ${{ secrets.PUBLIC_SSH_KEY }}
           script: |
-            mkdir -p /root/app
-            cp build/libs/*SNAPSHOT.jar /root/app/app.jar
             chmod +x /root/app/deploy_private.sh
             /root/app/deploy_private.sh
