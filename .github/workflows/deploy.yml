@@ -39,6 +39,7 @@ jobs:
 
       - name: Deploy JAR to Private from Public
         run: |
+          set -x
           ssh ${{ secrets.PUBLIC_USER }}@${{ secrets.PUBLIC_HOST }} << 'EOF'
             mkdir -p /root/app
             scp -o StrictHostKeyChecking=no /root/app/app.jar root@10.10.20.6:/root/app/app.jar
