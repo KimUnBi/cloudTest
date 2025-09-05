@@ -36,6 +36,6 @@ jobs:
           key: ${{ secrets.PUBLIC_SSH_KEY }}
           script: |
             mkdir -p /root/app
-            cp spring-boot-app/build/libs/*SNAPSHOT.jar /root/app/app.jar
+            cp build/libs/*SNAPSHOT.jar /root/app/app.jar
             chmod +x /root/app/deploy_private.sh
             /root/app/deploy_private.sh
