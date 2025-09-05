@@ -48,6 +48,7 @@ jobs:
             deploy_private.sh
           target: /root/app/
 
+# please
       - name: Execute deploy_private.sh on Public Server
         uses: appleboy/ssh-action@v1.0.3
         with:
